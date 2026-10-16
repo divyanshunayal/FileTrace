@@ -289,4 +289,80 @@
                 <div class="text-cyan-400 text-xl pt-0.5"><i class="fa-solid fa-shield-halved"></i></div>
                 <div class="space-y-1">
                     <h4 class="font-semibold text-sm text-slate-200">Privacy &amp; Local Security Guarantee</h4>
-                    <p class="text-
+                   <p class="text-sm text-slate-400">
+    FileTrace is designed to help developers manage code history
+    and search project context. Always protect private files,
+    credentials, and repository access tokens.
+</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function switchTab(tab) {
+            document.querySelectorAll('main > div').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            const selectedTab = document.getElementById('tab-' + tab);
+
+            if (selectedTab) {
+                selectedTab.classList.remove('hidden');
+            }
+        }
+
+        function setQuery(query) {
+            document.getElementById('searchInput').value = query;
+        }
+
+        function handleSearch() {
+            const input = document.getElementById('searchInput');
+            const results = document.getElementById('resultsContainer');
+            const query = input.value.trim();
+
+            if (!query) {
+                input.focus();
+                return;
+            }
+
+            results.innerHTML = `
+                <div class="bg-slate-900 border border-slate-800
+                            rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-cyan-400">
+                        Search Preview
+                    </h3>
+                    <p class="text-slate-300 mt-2">
+                        Search query: ${escapeHTML(query)}
+                    </p>
+                    <p class="text-sm text-slate-400 mt-2">
+                        Real file search requires a search backend.
+                    </p>
+                </div>
+            `;
+        }
+
+        function escapeHTML(value) {
+            const element = document.createElement('div');
+            element.textContent = value;
+            return element.innerHTML;
+        }
+
+        function updateTimeline() {
+            const select = document.getElementById('timelineFileSelect');
+            const output = document.getElementById('currentTimelineFile');
+
+            if (select && output) {
+                output.textContent = select.value;
+            }
+        }
+
+        function triggerReindex(source) {
+            alert(source + ' re-indexing is a demo feature. ' +
+                  'Connect a backend to enable real indexing.');
+        }
+    </script>
+
+</body>
+</html>
