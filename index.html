@@ -1,0 +1,292 @@
+```html
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileTrace — The Memory Layer for Developers</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-slate-950">
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-code-branch text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">FileTrace</span>
+                    <span class="text-xs text-slate-400 block -mt-1">Memory Layer</span>
+                </div>
+            </div>
+
+            <nav class="hidden md:flex items-center space-x-1">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-slate-800 text-cyan-400">
+                    <i class="fa-solid fa-magnifying-glass mr-2"></i>Search & Home
+                </button>
+                <button onclick="switchTab('timeline')" id="nav-timeline" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+                    <i class="fa-solid fa-timeline mr-2"></i>Memory Timeline
+                </button>
+                <button onclick="switchTab('sources')" id="nav-sources" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+                    <i class="fa-solid fa-database mr-2"></i>Sources
+                    <span class="ml-1 px-1.5 py-0.5 text-[10px] bg-emerald-500/20 text-emerald-400 rounded-full font-mono">2 Active</span>
+                </button>
+                <button onclick="switchTab('architecture')" id="nav-architecture" class="px-3 py-2 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
+                    <i class="fa-solid fa-sitemap mr-2"></i>Architecture & Docs
+                </button>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <div class="hidden sm:flex items-center space-x-2 text-xs bg-slate-800/60 border border-slate-700/60 px-3 py-1.5 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-300 font-mono">Index: 1,420 files</span>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 font-medium text-xs">
+                    DV
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- TAB 1: DASHBOARD / SEARCH -->
+        <div id="tab-dashboard" class="space-y-8">
+            <!-- Hero Search Area -->
+            <div class="text-center max-w-3xl mx-auto space-y-4 py-8">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-medium">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Your codebase has a memory</span>
+                </div>
+                <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
+                    Find code through <span class="bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">remembered context</span>.
+                </h1>
+                <p class="text-slate-400 text-base sm:text-lg">
+                    Stop hunting across deep folder trees and disconnected commits. Describe what you worked on, and FileTrace finds the exact file and history.
+                </p>
+
+                <!-- Search Bar Form -->
+                <div class="mt-6 relative max-w-2xl mx-auto">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-cyan-400">
+                        <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                    </div>
+                    <input type="text" id="searchInput" 
+                        placeholder="e.g., 'Find the file where I fixed the login timeout issue' or 'API retry logic'..." 
+                        class="w-full pl-12 pr-32 py-4 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-sm sm:text-base transition-all"
+                        onkeydown="if(event.key === 'Enter') handleSearch()" />
+                    <div class="absolute inset-y-1.5 right-1.5 flex items-center space-x-1">
+                        <button onclick="handleSearch()" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-medium text-sm rounded-xl hover:from-cyan-400 hover:to-blue-500 transition-all shadow-lg shadow-cyan-500/25 flex items-center space-x-2">
+                            <span>Search</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Query Chips -->
+                <div class="flex flex-wrap items-center justify-center gap-2 pt-2 text-xs">
+                    <span class="text-slate-500 font-medium">Try searching:</span>
+                    <button onclick="setQuery('login timeout fix')" class="px-3 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-300 hover:text-cyan-400 transition-colors">
+                        "login timeout fix"
+                    </button>
+                    <button onclick="setQuery('token refresh logic')" class="px-3 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-300 hover:text-cyan-400 transition-colors">
+                        "token refresh logic"
+                    </button>
+                    <button onclick="setQuery('authentication middleware')" class="px-3 py-1.5 bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-lg text-slate-300 hover:text-cyan-400 transition-colors">
+                        "authentication middleware"
+                    </button>
+                </div>
+            </div>
+
+            <!-- Source Status Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                            <i class="fa-solid fa-folder-tree text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-sm text-slate-200">Local Project Folder</div>
+                            <div class="text-xs text-slate-400 font-mono">/Users/dev/projects/auth-service</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full border border-emerald-500/20 font-medium flex items-center space-x-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span>Connected</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/60 border border-slate-800 p-4 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                            <i class="fa-brands fa-github text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-sm text-slate-200">GitHub Repository</div>
+                            <div class="text-xs text-slate-400 font-mono">org/secure-auth-api</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full border border-emerald-500/20 font-medium flex items-center space-x-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span>Synced 12m ago</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results & Content Area -->
+            <div id="resultsContainer" class="max-w-4xl mx-auto space-y-4 pt-4">
+                <!-- Initial Empty / Sample State -->
+                <div class="border border-dashed border-slate-800 rounded-2xl p-12 text-center space-y-3">
+                    <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500">
+                        <i class="fa-solid fa-code text-lg"></i>
+                    </div>
+                    <h3 class="font-semibold text-slate-300">Ready to search your codebase memory</h3>
+                    <p class="text-sm text-slate-500 max-w-md mx-auto">
+                        Type a query above or click one of the suggestion chips to discover files, commits, and verified event timelines.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: FILE MEMORY TIMELINE -->
+        <div id="tab-timeline" class="space-y-6 hidden max-w-4xl mx-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-timeline text-cyan-400"></i>
+                        <span>File Memory Timeline</span>
+                    </h2>
+                    <p class="text-sm text-slate-400">Chronological event reconstruction with verified source evidence.</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <select id="timelineFileSelect" onchange="updateTimeline()" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-cyan-500">
+                        <option value="session.ts">src/auth/session.ts</option>
+                        <option value="token.py">src/api/token.py</option>
+                        <option value="test_auth.py">tests/test_auth.py</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Timeline Card Header -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center font-mono text-sm font-bold">
+                        TS
+                    </div>
+                    <div>
+                        <div class="font-mono font-bold text-slate-100" id="currentTimelineFile">src/auth/session.ts</div>
+                        <div class="text-xs text-slate-400">Source: Local Project &amp; GitHub Repository</div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 text-xs">
+                    <span class="px-2 py-1 bg-slate-800 text-slate-300 rounded border border-slate-700">Modified: 2 days ago</span>
+                    <span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20 font-medium">Verified Evidence</span>
+                </div>
+            </div>
+
+            <!-- Vertical Timeline UI -->
+            <div class="relative pl-6 sm:pl-8 space-y-8 before:absolute before:left-2.5 sm:before:left-3.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800" id="timelineEventsContainer">
+                <!-- Timeline items will be rendered via JS -->
+            </div>
+        </div>
+
+        <!-- TAB 3: SOURCES MANAGER -->
+        <div id="tab-sources" class="space-y-6 max-w-4xl mx-auto hidden">
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-2xl font-bold text-white flex items-center space-x-2">
+                    <i class="fa-solid fa-database text-cyan-400"></i>
+                    <span>Connected Sources &amp; Indexing</span>
+                </h2>
+                <p class="text-sm text-slate-400">Manage permitted local directories and GitHub repositories securely.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Local Folder Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                                <i class="fa-solid fa-folder-tree text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-slate-200">Local Project Folder</h3>
+                                <p class="text-xs text-slate-500">Filesystem indexing</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full border border-emerald-500/20 font-medium">Active</span>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 truncate">
+                        /Users/dev/projects/auth-service
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-400">
+                        <div class="flex justify-between"><span>Indexed Files:</span><span class="font-mono text-slate-200">1,240 files</span></div>
+                        <div class="flex justify-between"><span>Last Scanned:</span><span class="font-mono text-slate-200">12 minutes ago</span></div>
+                        <div class="flex justify-between"><span>Exclusions:</span><span class="font-mono text-slate-200">node_modules, .env, .git</span></div>
+                    </div>
+                    <div class="pt-2 flex items-center space-x-2">
+                        <button onclick="triggerReindex('Local')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg text-xs transition-colors">
+                            <i class="fa-solid fa-rotate mr-1.5"></i>Re-index Folder
+                        </button>
+                        <button onclick="alert('Folder picker dialog simulated. Secure access verified.')" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GitHub Connector Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                                <i class="fa-brands fa-github text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-slate-200">GitHub Repository</h3>
+                                <p class="text-xs text-slate-500">Commit &amp; PR history</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs rounded-full border border-emerald-500/20 font-medium">Connected</span>
+                    </div>
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 truncate">
+                        org/secure-auth-api (main branch)
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-400">
+                        <div class="flex justify-between"><span>Synced Commits:</span><span class="font-mono text-slate-200">482 commits</span></div>
+                        <div class="flex justify-between"><span>Last Sync:</span><span class="font-mono text-slate-200">Just now</span></div>
+                        <div class="flex justify-between"><span>Auth Scope:</span><span class="font-mono text-slate-200">repo (read-only)</span></div>
+                    </div>
+                    <div class="pt-2 flex items-center space-x-2">
+                        <button onclick="triggerReindex('GitHub')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium rounded-lg text-xs transition-colors">
+                            <i class="fa-solid fa-cloud-arrow-down mr-1.5"></i>Sync Repository
+                        </button>
+                        <button onclick="alert('GitHub OAuth settings managed securely.')" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs">
+                            <i class="fa-solid fa-gear"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Notice -->
+            <div class="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-5 flex items-start space-x-4">
+                <div class="text-cyan-400 text-xl pt-0.5"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="space-y-1">
+                    <h4 class="font-semibold text-sm text-slate-200">Privacy &amp; Local Security Guarantee</h4>
+                    <p class="text-
